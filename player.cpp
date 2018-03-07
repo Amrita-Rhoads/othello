@@ -22,6 +22,7 @@ Player::Player(Side s) {
 /*
  * Destructor for the player.
  */
+
 Player::~Player() {
     delete board;
 }
@@ -49,6 +50,12 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 }
 
 
+/** 
+ * Returns a random move in response to an opponents move.
+ * 
+ * @param - opponentsMove - the last move taken.
+ * @param - msLeft - millisecond left in the game.
+ */
 Move *Player::simpleMove(Move *opponentsMove, int msLeft){
     // Update the board for the most recent move.
     board->doMove(opponentsMove, other);
@@ -76,6 +83,12 @@ Move *Player::simpleMove(Move *opponentsMove, int msLeft){
 }
 
 
+/** 
+ * Returns a heuristically-chosen move in response to an opponents move.
+ * 
+ * @param - opponentsMove - the last move taken.
+ * @param - msLeft - millisecond left in the game.
+ */
 Move *Player::heuristicMove(Move *opponentsMove, int msLeft){
     // Update the board for the most recent move.
     board->doMove(opponentsMove, other);
@@ -86,7 +99,7 @@ Move *Player::heuristicMove(Move *opponentsMove, int msLeft){
     }
     
     Move * move = new Move(0,0); // TODO: Free this in destructor
-    int max_score = -65;
+    int max_score = 500;
     
     // Iterate over valid moves, evaluate heuristic score of each,
     // and choose best.
@@ -97,7 +110,7 @@ Move *Player::heuristicMove(Move *opponentsMove, int msLeft){
             if (board->checkMove(&dummy_move, side)){
                 Board * dummy = board->copy();
                 dummy->doMove(move, side);
-                if (simpleHeuristic(dummy, side) >= max_score){
+                if (simpleHeuristic(dummy, side) <= max_score){
                     move->setX(i);
                     move->setY(j);
                     max_score = simpleHeuristic(dummy, side);
@@ -113,12 +126,17 @@ Move *Player::heuristicMove(Move *opponentsMove, int msLeft){
 }
 
 
+/** 
+ * Returns a heuristic goodness of the board score.
+ * 
+ * @param - board - the game board.
+ * @param - s - The side to evaluate for.
+ */
 int Player::simpleHeuristic(Board * board, Side s){
     int score = 0;
-    int total = board->countBlack() + board->countWhite();
     
     // Difference in colors. Early game, one actually wants fewer disks.
-    if ((s == BLACK && total > 40) || (s != BLACK && total < 40)){
+    if (s == BLACK){
         score = board->countBlack() - board->countWhite();
     }
     else {
@@ -130,12 +148,31 @@ int Player::simpleHeuristic(Board * board, Side s){
     for (auto i : corner_indicies){
         for (auto j : corner_indicies){
             if (board->get(s, i, j)){
-                score += 10;
+                score += 55;
             }
         }
     }
     
+    // Spaces near corners are poor.
+    int c_indicies[] = {0, 1, 6, 7};
+    for (auto i : c_indicies){
+        for (auto j : c_indicies){
+            if (board->get(s, i, j)){
+                score -= 25;
+            }
+        }
+    }
     
+    // Edges are good.
+    for (int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++){
+            if (i == 0 || i == 7 || j == 0 || j == 7){
+                if (board->get(s, i, j)){
+                score += 5;
+            }
+            }
+        }
+    }
     
     return score;
     
