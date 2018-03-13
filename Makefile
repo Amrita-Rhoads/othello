@@ -1,7 +1,7 @@
 CC          = g++
 CFLAGS      = -std=c++11 -Wall -pedantic -ggdb
 OBJS        = player.o board.o
-PLAYERNAME  = cake
+PLAYERNAME  = imagine_if_holiday_music_were_played_every_month
 
 all: $(PLAYERNAME) testgame
 
